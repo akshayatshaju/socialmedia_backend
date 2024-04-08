@@ -42,8 +42,8 @@ class CreatePost(APIView):
         # Assuming 'croppedImages' is the key for the images in the FormData
         print(request.FILES,"before")
         
-        cropped_images = request.FILES.getlist('croppedImages')
-        print(cropped_images)
+        cropped_images = request.FILES.getlist('Images')
+        print(cropped_images,"croped")
 
         # Create a Post instance with the caption
         post_serializer = PostCreationSerializer(data={'caption': caption,'hashtags':newrequest['hashtags']},context={'request': request})
@@ -54,7 +54,7 @@ class CreatePost(APIView):
             # Save the cropped images as PostMedia instances
             for image in cropped_images:
                 post_media_serializer = PostMediaSerializer(data={'media_file': image})
-                print(post_media_serializer)
+                print(post_media_serializer,"mediaserlizer")
                 if post_media_serializer.is_valid():
                     
                     post_media_serializer.save(post=post_instance)
@@ -271,3 +271,125 @@ class Likecount(APIView):
         p = Post.objects.filter(user=request.user)
         like_count = Like.objects.filter(post=p)
         return Response({'like-count':like_count},status=200)
+
+
+
+#-------------------------following/followers------------------------------------------#
+
+
+
+class FollowUnfollowUserView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, user_id):
+        logged_in_user = request.user
+        try:
+            user_to_follow = Account.objects.get(id=user_id)
+        except Account.DoesNotExist:
+            return Response(
+                {"detail": "User not found."}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        if logged_in_user == user_to_follow:
+            return Response(
+                {"detail": "You cannot follow/unfollow yourself."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            follow_instance = Follow.objects.get(
+                follower=logged_in_user, following=user_to_follow
+            )
+            follow_instance.delete()
+            print("unfollwedd")
+            return Response(
+                {"detail": "You have unfollowed this user."}, status=status.HTTP_200_OK
+            )
+        except Follow.DoesNotExist:
+            follow_instance = Follow(follower=logged_in_user, following=user_to_follow)
+            follow_instance.save()
+            print("followed",follow_instance)
+            n=Notification.objects.create(
+                        from_user=request.user,
+                        to_user=user_to_follow,
+                        notification_type=Notification.NOTIFICATION_TYPES[2][0],
+                    ) 
+            print(n)
+            return Response(
+                {"detail": "You are now following this user."},
+                status=status.HTTP_201_CREATED,
+            )
+    
+    
+# class ContactListvView(generics.RetrieveAPIView):
+#     permission_classes = [IsAuthenticated]
+
+#     def retrieve(self, request, *args, **kwargs):
+#         user = self.request.user
+#         followers = user.followers.all()
+#         following = user.following.all()
+#         unique_user_ids = set()
+#         response_data = []
+        
+#         for follower in followers:
+#             if follower.follower.id not in unique_user_ids and follower.follower != user:
+#                 follower_data = {
+#                     "id": follower.follower.id,
+#                     "username": follower.follower.username,
+#                     "profile_pic": follower.follower.profile_pic.url
+#                         if follower.follower.profile_pic else None,
+#                     "last_login": follower.follower.last_login,
+#                 }
+#                 # Count unread messages for this follower
+#                 unread_message_count = Message.objects.filter(
+#                     room__members=user, sender=follower.follower, is_seen=False
+#                 ).count()
+#                 follower_data["unseen_message_count"] = unread_message_count
+#                 response_data.append(follower_data)
+#                 unique_user_ids.add(follower.follower.id)
+        
+#         for followed in following:
+#             print(followed.following)
+
+#             if followed.following.id not in unique_user_ids and followed.following != user:
+#                 print(followed,"following")
+#                 following_data = {
+#                     "id": followed.following.id,
+#                     "username": followed.following.username,
+#                     "profile_pic": followed.following.profile_pic.url
+#                         if followed.following.profile_pic else None,
+#                     "last_login": followed.following.last_login,
+#                 }
+#                 # Count unread messages for this followed user
+#                 unread_message_count = Message.objects.filter(
+#                     room__members=user, sender=followed.following, is_seen=False
+#                 ).count()
+#                 following_data["unread_message_count"] = unread_message_count
+#                 response_data.append(following_data)
+#                 unique_user_ids.add(followed.following.id)
+
+#         return Response(response_data)
+    
+    
+class FollowingListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = FollowingSerializer
+
+    def get_queryset(self):
+        user_id = self.kwargs["id"]
+        user = Account.objects.get(id=user_id)
+        return Follow.objects.filter(follower=user)
+    
+
+class FollowerListView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = FollowerSerializer
+
+    def get_queryset(self):
+        user_id = self.kwargs["id"]
+        user = Account.objects.get(id=user_id)
+        return Follow.objects.filter(following=user)
+
+
+    
+    
