@@ -102,4 +102,56 @@ class GetUserView(APIView):
 def CheckAuth(request):
     # If the view reaches here, the user is authenticated
     return Response({'message': 'Authenticated'})
+
+
+from django.conf import settings
+
+class ChangeProfilePicView(APIView):
+    permission_classes=[IsAuthenticated]
+    authentication_classes=[JWTAuthentication]
+    parser_classes = [MultiPartParser]
+    def patch(self,request):
+        print(request.data)
+        u = request.user
+        print(request.data.get('profile_pic'))
+        u.profile_pic = request.data.get('profile_pic')
+        u.save()
+        print(u.profile_pic)
+        full_path = f"{settings.CUSTOM_DOMAIN}{settings.MEDIA_URL}{u.profile_pic}"
+        print(full_path)
+        return Response({'message':"success",'updatedProfilePic':full_path},status=200)
+    
+    
+class EditProfileView(APIView):
+    permission_classes=[IsAuthenticated]
+    authentication_classes=[JWTAuthentication]
+    
+    def patch(self,request):
+        print(request.data)
+        u = request.user
+        u.username = request.data.get('username')
+        u.name = request.data.get('name')
+        u.email = request.data.get('email')
+        u.phone = request.data.get('phone')
+        u.save()
+        return Response({'message':"success"},status=200)
+    
+    
+class ChangePassword(APIView):
+    permission_classes=[IsAuthenticated]
+    authentication_classes=[JWTAuthentication]
+    
+    def patch(self,request):
+        print(request.data)
+        u = request.user
+        if u:
+            password = request.data['password']
+            print(u.password," before changing")
+            u.password = make_password(password)
+            u.save()
+            print(u.password," after changing")
+            
+            return Response({'message':"success"},status=200)
+        else:
+            return Response({'message':"fail"},status=status.HTTP_400_BAD_REQUEST)
     

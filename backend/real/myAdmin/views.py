@@ -9,8 +9,8 @@ from rest_framework.authentication import authenticate
 # from django.contrib.auth import authenticate
 from user.models import Account
 from rest_framework_simplejwt.authentication import JWTAuthentication
-#from posts.models import *
-#from posts.serializer import *
+from posts.models import *
+from posts.serializer import *
 from django.db.models.functions import ExtractMonth,ExtractYear,ExtractDay,TruncDate,TruncMonth,TruncYear
 from django.db.models import F,Q ,Count
 from user.serializers import JoiningMonthCountSerializer
@@ -135,3 +135,51 @@ class UserCountByMonth(APIView):
         serializer = JoiningMonthCountSerializer(user_counts, many=True)
 
         return Response(serializer.data)
+    
+class DeletePost(APIView):
+    def delete(self,request,id):
+        try:
+            p = Post.objects.get(id=id)
+            p.delete()
+            return Response({"message": "success"}, status=status.HTTP_200_OK)
+        except Post.DoesNotExist:
+            print("post not found")
+            return Response({"message": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
+       
+       
+       
+        
+class DeleteComment(APIView):
+    permission_classes=[IsAdminUser]
+    def delete(self,request,id):
+        try:
+            p = Comment.objects.get(id=id)
+            p.delete()
+            return Response({"message": "success"}, status=status.HTTP_200_OK)
+        except Post.DoesNotExist:
+            print("post not found")
+            return Response({"message": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        
+        
+class AdminUserPosts(APIView):
+    # permission_classes=[IsAdminUser]
+    def get(self,request,userEmail):
+        print(" requested for details of user")
+        detail = Account.objects.get(email=userEmail)
+        print(detail)
+        p = Post.objects.filter(user=detail)
+        serializer = GetPostSerializer(instance=p,many=True,context={'request':request})
+        print(serializer.data)
+        return Response(serializer.data,status=200)
+    
+    
+class AdminUserPostsDetails(APIView):
+    # permission_classes=[IsAdminUser]
+    def get(self,request,id):
+        p = Post.objects.filter(id=id)
+        print(p)
+        serializer = GetPostSerializer(instance=p,many=True,context={'request':request})
+        print(serializer.data)
+        return Response(serializer.data,status=200)
+

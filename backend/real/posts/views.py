@@ -78,7 +78,7 @@ class LikePost(APIView):
     
     def post(self,request):
         try:
-            print(request.data)
+            print(request.data,"data")
             p = Post.objects.get(id=request.data.get('id'))
             print(p,"post to like")
             if Like.objects.filter(post=p, user=request.user).exists():
@@ -250,15 +250,20 @@ class RecommendedPostView(APIView):
 
         # get hashtags of posts liked by user
         liked_post_hashtags = HashTag.objects.filter(hash__like__user=user)
+        print(liked_post_hashtags,"likee")
 
 
         # find post with similar hashtags
         recommended = (Post.objects.filter(hashtags__in=liked_post_hashtags).exclude(Q(user=user)|Q(like__user=user)).distinct())
+        print(recommended,"recomended")
 
         remaining = Post.objects.exclude(Q(user=user)|Q(id__in=recommended.values('id')))
+        print(remaining,"remainggg")
         
         remaining_serializer = GetPostSerializer(instance=remaining,many=True,context={'request':request})
         recommended_serializer = GetPostSerializer(instance=recommended,many=True,context={'request':request})
+        print(remaining_serializer, "reserilizer")
+        print(recommended_serializer, "recomserilizer")
 
         combined = recommended_serializer.data + remaining_serializer.data
         print(combined,"combined")
