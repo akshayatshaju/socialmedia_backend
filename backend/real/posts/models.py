@@ -36,7 +36,11 @@ class Comment(models.Model):
     content =  models.TextField()
     commented_at = models.DateTimeField(auto_now_add=True)
 
-
+class Reply(models.Model):
+    user = models.ForeignKey(Account, on_delete=models.CASCADE)
+    comment = models.ForeignKey('Comment', on_delete=models.CASCADE, related_name='replies')
+    content = models.TextField()
+    replied_at = models.DateTimeField(auto_now_add=True)
 
 class HashTag(models.Model):
     hashtag = models.CharField(null=True,max_length=50)

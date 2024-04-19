@@ -1,9 +1,12 @@
 from rest_framework import serializers
+
+from posts.models import Follow
 from .models import Account
 from django.contrib.auth.hashers import make_password
 import os
 from django.core import exceptions
 from datetime import datetime
+
 
 #user register serializer
 
@@ -35,11 +38,67 @@ class UserLoginSerializer(serializers.Serializer):
     
     
     
+# class GetUserSerializer(serializers.ModelSerializer):
+    
+
+    
+    
+#     class Meta:
+#         model = Account
+#         fields = ['id',
+#                   'username',
+#                   'phone', 
+#                   'first_name',
+#                   'last_name', 'email', 
+#                   'profile_pic', 
+#                   'date_joined', 
+#                   'last_login',
+#                   'is_admin',
+#                   'is_staff', 
+#                   'is_active', 
+#                   'is_superuser',
+                  
+#                   ]
 class GetUserSerializer(serializers.ModelSerializer):
+    followers_count = serializers.SerializerMethodField()
+    followings_count = serializers.SerializerMethodField()
+    # is_following = serializers.SerializerMethodField()
+    posts_count =  serializers.SerializerMethodField()
+
+ 
+    def get_followers_count(self, obj):
+        return obj.followers.count()
+
+    def get_followings_count(self, obj):
+        return obj.following.count()  
+    
+    # def get_is_following(self, obj):
+    #     print(Follow.objects.filter(follower=self.context['request'].user, following=obj))
+    #     return Follow.objects.filter(follower=self.context['request'].user, following=obj).exists()
+    
+    def get_posts_count(self, obj):
+        return obj.myposts.count()  
+    
     class Meta:
         model = Account
-        fields = ['id','username', 'phone', 'first_name', 'last_name', 'email', 'profile_pic', 'date_joined', 'last_login', 'is_admin', 'is_staff', 'is_active', 'is_superuser']
-
+        fields = [
+            "id",
+            "username",
+            "first_name",
+            "username",
+            "email",
+            'phone',
+            "profile_pic",
+            "last_login",
+            "is_staff",
+            "is_active",
+            "is_superuser",
+            "followers_count",
+            "followings_count",
+        
+            'posts_count'
+            
+        ]
         
 
 class ChangePasswordSerializer(serializers.Serializer):

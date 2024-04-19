@@ -203,6 +203,7 @@ class DeleteComment(APIView):
 
             # Check if the comment exists
             comment = Comment.objects.get(id=id,  user=request.user)
+            print(id, "commentid")
             print(comment,"comment")
             # Delete the comment
             comment.delete()
@@ -213,7 +214,86 @@ class DeleteComment(APIView):
             return Response({"message": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
         except Comment.DoesNotExist:
             return Response({"message": "Comment not found or you don't have permission to delete"}, status=status.HTTP_404_NOT_FOUND)
+        
+        
+#replytoComments 
+class ReplyToComment(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, comment_id):
+        try:
+            print(request.data,"replydataa")
+            # Check if the comment exists
+            comment = Comment.objects.get(id=comment_id)
+            print(request.user.id, "comment id")
 
+            # Extract reply data from the request data
+            reply_data = {
+                'content': request.data.get('content'),
+                'comment': comment.id,
+            }
+            print(reply_data)
+
+            # Serialize the reply data
+            serializer = ReplySerializer(data=reply_data, context={'request': request, 'comment_id': comment_id})
+            if serializer.is_valid():
+                serializer.save()
+                # Assuming you want to send notifications for replies to comments, add notification logic here
+                
+               
+ 
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        except Comment.DoesNotExist:
+            return Response({"message": "Comment not found"}, status=status.HTTP_404_NOT_FOUND)        
+
+
+class GetReplies(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, comment_id):
+        try:
+            # Check if the comment exists
+            comment = Comment.objects.get(id=comment_id)
+
+            # Retrieve all replies for the comment
+            replies = Reply.objects.filter(comment=comment)
+
+            # Serialize the replies data
+            serializer = ReplySerializer(replies, many=True)
+
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Comment.DoesNotExist:
+            return Response({"message": "Comment not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        
+        
+        
+class DeleteReply(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, reply_id):
+        try:
+            # Check if the reply exists
+            reply = Reply.objects.get(id=reply_id, user=request.user)
+            print(reply, "replyy")
+
+            # Delete the reply
+            reply.delete()
+
+            return Response({"message": "Reply deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        
+        except Comment.DoesNotExist:
+            return Response({"message": "Comment not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        except Reply.DoesNotExist:
+            return Response({"message": "Reply not found or you don't have permission to delete"}, status=status.HTTP_404_NOT_FOUND)
+        
+        
+        
 # get details of logged in user
 class MyPostView(APIView):
     permission_classes = [IsAuthenticated]
@@ -394,7 +474,75 @@ class FollowerListView(generics.ListAPIView):
         user_id = self.kwargs["id"]
         user = Account.objects.get(id=user_id)
         return Follow.objects.filter(following=user)
-
-
     
+# ---------------------saved post------------------------------------------
+class SavePost(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        print(request.data,"data")
+        post_id = request.data.get('id')
+        print(post_id, "postid")
+        post = get_object_or_404(Post, id=post_id)
+        saved_post, created = SavedPost.objects.get_or_create(user=request.user, post=post)
+
+        if created:
+            print("saved")
+            serializer = SavedPostSerializer(saved_post)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            print("deleted from saved")
+            saved_post.delete()
+            return Response({'message': 'Post removed from saved posts'}, status=status.HTTP_200_OK)
+
+
+class UserSavedPosts(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user_saved_posts = SavedPost.objects.filter(user=request.user)
+        post_serializer = GetPostSerializer([saved_post.post for saved_post in user_saved_posts], many=True,context={'request':request})
+        print(post_serializer.data,"saved postss")
+        return Response(post_serializer.data, status=status.HTTP_200_OK)
+    
+    
+    # -------------------Notification------------------------------
+    
+class NotificationsView(generics.ListAPIView):
+    permission_classes = [  IsAuthenticated]
+    serializer_class = NotificationSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return (
+            Notification.objects.filter(to_user=user)
+            .exclude(is_seen=True)
+            .order_by("-created")
+        )
+
+    def get(self, request, *args, **kwargs):
+        try:
+            queryset = self.get_queryset()
+            serializer = self.get_serializer(queryset, many=True)
+            print(serializer.data,"all notissss")
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response(str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
+
+class NotificationsSeenView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = NotificationSerializer
+
+    def get_queryset(self):
+        return Notification.objects.all()  # Override the get_queryset method
+
+    def post(self, request, pk, *args, **kwargs):
+        try:
+            notification = Notification.objects.get(pk=pk)
+            notification.is_seen = True
+            notification.save()
+            return Response(status=status.HTTP_200_OK)
+        except Notification.DoesNotExist:
+            return Response("Not found in the database", status=status.HTTP_404_NOT_FOUND)
     

@@ -121,6 +121,23 @@ class CommentSerializer(serializers.ModelSerializer):
         user_ser = GetUserSerializer(instance)
         return user_ser.data
     
+    
+class ReplySerializer(serializers.ModelSerializer):
+    user = GetUserSerializer(read_only=True)
+
+    class Meta:
+        model = Reply
+        fields = ('id', 'content', 'replied_at', 'user', 'comment')
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        comment_id = self.context['comment_id']  # Assuming you pass comment_id in context
+
+        # Create the reply with the extracted user instance and comment id
+        reply = Reply.objects.create(user=user, comment_id=comment_id, **validated_data)
+        return reply
+
+    
 #-----------------------------------------------------------------------------------------------------------------------------------
 class AccountSerializer(serializers.ModelSerializer):
     followers_count = serializers.SerializerMethodField()
