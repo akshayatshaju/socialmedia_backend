@@ -24,6 +24,8 @@ urlpatterns = [
         path('api/',include('user.urls')),
         path('myAdmin/',include('myAdmin.urls')),
         path('posts/',include('posts.urls')),
+        path('chat/',include('chat.urls')),
+
         
      
        
