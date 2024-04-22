@@ -36,22 +36,27 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    
     'rest_framework',
     'oauth2_provider',
     'social_django',
     'drf_social_oauth2',
     'rest_framework_simplejwt.token_blacklist',
     'corsheaders', 
+    'channels' ,
+    
     'user',
     'posts',
     'chat',
     'myAdmin'
+     
     
     
 ]
@@ -65,6 +70,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    
     
 ]
 
@@ -216,4 +222,13 @@ CSRF_COOKIE_SECURE = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000", 
 ]
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
+
+
+
 
