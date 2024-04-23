@@ -30,6 +30,7 @@ urlpatterns = [
     path('follow/<int:user_id>/', FollowUnfollowUserView.as_view(), name='follow-user'),
     path('followings/<int:id>/', FollowingListView.as_view(), name='following-list'),
     path('followers/<int:id>/', FollowerListView.as_view(), name='follower-list'),
+    path('contacts', ContactListvView.as_view(), name='followers-following'),
     
     
     path('notifications/', NotificationsView.as_view(), name='notifications'),

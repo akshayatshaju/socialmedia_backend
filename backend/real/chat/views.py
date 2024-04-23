@@ -7,6 +7,8 @@ from rest_framework.response import Response
 from .serializers import *
 from django.db.models import Q
 # Create your views here.
+
+
 User = get_user_model()
 
 class CreateChatRoom(APIView):
@@ -67,7 +69,7 @@ class MessageSeenView(APIView):
             messages_to_update = Message.objects.filter(Q(room=chat_room))
             print(messages_to_update,"messages")
             messages_to_update.update(is_seen=True) 
-            return Response({"SUcces":"Chat Room Found"},status=status.HTTP_200_OK)
+            return Response({"Succes":"Chat Room Found"},status=status.HTTP_200_OK)
         else:
             return Response({'error':"Room not found"},status=status.HTTP_404_NOT_FOUND)
         

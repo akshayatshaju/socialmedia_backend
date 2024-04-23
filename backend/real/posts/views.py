@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from .models import HashTag, Follow
 from django.db.models import Q
-#from chat.models import *
+from chat.models import *
 from .serializer import *
 from django.shortcuts import get_object_or_404
 
@@ -406,54 +406,8 @@ class FollowUnfollowUserView(APIView):
             )
     
     
-# class ContactListvView(generics.RetrieveAPIView):
-#     permission_classes = [IsAuthenticated]
 
-#     def retrieve(self, request, *args, **kwargs):
-#         user = self.request.user
-#         followers = user.followers.all()
-#         following = user.following.all()
-#         unique_user_ids = set()
-#         response_data = []
-        
-#         for follower in followers:
-#             if follower.follower.id not in unique_user_ids and follower.follower != user:
-#                 follower_data = {
-#                     "id": follower.follower.id,
-#                     "username": follower.follower.username,
-#                     "profile_pic": follower.follower.profile_pic.url
-#                         if follower.follower.profile_pic else None,
-#                     "last_login": follower.follower.last_login,
-#                 }
-#                 # Count unread messages for this follower
-#                 unread_message_count = Message.objects.filter(
-#                     room__members=user, sender=follower.follower, is_seen=False
-#                 ).count()
-#                 follower_data["unseen_message_count"] = unread_message_count
-#                 response_data.append(follower_data)
-#                 unique_user_ids.add(follower.follower.id)
-        
-#         for followed in following:
-#             print(followed.following)
-
-#             if followed.following.id not in unique_user_ids and followed.following != user:
-#                 print(followed,"following")
-#                 following_data = {
-#                     "id": followed.following.id,
-#                     "username": followed.following.username,
-#                     "profile_pic": followed.following.profile_pic.url
-#                         if followed.following.profile_pic else None,
-#                     "last_login": followed.following.last_login,
-#                 }
-#                 # Count unread messages for this followed user
-#                 unread_message_count = Message.objects.filter(
-#                     room__members=user, sender=followed.following, is_seen=False
-#                 ).count()
-#                 following_data["unread_message_count"] = unread_message_count
-#                 response_data.append(following_data)
-#                 unique_user_ids.add(followed.following.id)
-
-#         return Response(response_data)
+    
     
     
 class FollowingListView(generics.ListAPIView):
@@ -474,6 +428,58 @@ class FollowerListView(generics.ListAPIView):
         user_id = self.kwargs["id"]
         user = Account.objects.get(id=user_id)
         return Follow.objects.filter(following=user)
+    
+    
+#---------------------contactlistview-----------------------------
+class ContactListvView(generics.RetrieveAPIView):
+    permission_classes = [IsAuthenticated]
+
+    def retrieve(self, request, *args, **kwargs):
+        user = self.request.user
+        followers = user.followers.all()
+        following = user.following.all()
+        unique_user_ids = set()
+        response_data = []
+        
+        for follower in followers:
+            if follower.follower.id not in unique_user_ids and follower.follower != user:
+                follower_data = {
+                    "id": follower.follower.id,
+                    "username": follower.follower.username,
+                    "profile_pic": follower.follower.profile_pic.url
+                        if follower.follower.profile_pic else None,
+                    "last_login": follower.follower.last_login,
+                }
+                # Count unread messages for this follower
+                unread_message_count = Message.objects.filter(
+                    room__members=user, sender=follower.follower, is_seen=False
+                ).count()
+                follower_data["unseen_message_count"] = unread_message_count
+                response_data.append(follower_data)
+                unique_user_ids.add(follower.follower.id)
+        
+        for followed in following:
+            print(followed.following)
+
+            if followed.following.id not in unique_user_ids and followed.following != user:
+                print(followed,"following")
+                following_data = {
+                    "id": followed.following.id,
+                    "username": followed.following.username,
+                    "profile_pic": followed.following.profile_pic.url
+                        if followed.following.profile_pic else None,
+                    "last_login": followed.following.last_login,
+                }
+                # Count unread messages for this followed user
+                unread_message_count = Message.objects.filter(
+                    room__members=user, sender=followed.following, is_seen=False
+                ).count()
+                following_data["unread_message_count"] = unread_message_count
+                response_data.append(following_data)
+                unique_user_ids.add(followed.following.id)
+
+        return Response(response_data)
+
     
 # ---------------------saved post------------------------------------------
 class SavePost(APIView):

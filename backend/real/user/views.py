@@ -4,17 +4,19 @@ from rest_framework.views import APIView
 from .serializers import UserRegisterSerializer,UserLoginSerializer,GetUserSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import AllowAny, IsAuthenticated
-#from rest_framework import permissions,generics
+from rest_framework import permissions,generics
 from rest_framework.authentication import authenticate
-# from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate
 from .models import Account
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.parsers import MultiPartParser
 from rest_framework.decorators import api_view, permission_classes
 from .serializers import *
-#from django.db.models import Count,Q
-#from django.db.models.functions import ExtractMonth, ExtractYear
-#from django.utils import timezone
+from django.db.models import Count,Q
+from django.db.models.functions import ExtractMonth, ExtractYear
+from django.utils import timezone
+from posts.serializer import AccountSerializer, GetPostSerializer
+from posts.models import Post
 
 
 #User Register view
@@ -154,4 +156,35 @@ class ChangePassword(APIView):
             return Response({'message':"success"},status=200)
         else:
             return Response({'message':"fail"},status=status.HTTP_400_BAD_REQUEST)
+        
+        
+class CustomUserSearchAPIView(APIView):
+    def get(self, request, *args, **kwargs):
+        query = request.query_params.get('query', None)
+
+        if not query:
+            return Response({'error': 'Query parameter "query" is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        queryset = Account.objects.filter(Q(username__icontains=query)|Q(name__icontains=query)).exclude(pk=request.user.id)
+        print(queryset)
+        
+
+
+        serializer = GetUserSerializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+class GetOtherUserView(generics.RetrieveAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Account.objects.all()
+    serializer_class = AccountSerializer
+    lookup_field = 'id'
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance,context={'request':request})
+       
+        post_serializer = GetPostSerializer( Post.objects.filter(user=instance)
+        , many=True,context={'request':request})
+
+        return Response({'posts': post_serializer.data,'user_data': serializer.data})
     
