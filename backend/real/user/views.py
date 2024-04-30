@@ -165,7 +165,7 @@ class CustomUserSearchAPIView(APIView):
         if not query:
             return Response({'error': 'Query parameter "query" is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        queryset = Account.objects.filter(Q(username__icontains=query)|Q(name__icontains=query)).exclude(pk=request.user.id)
+        queryset = Account.objects.filter(Q(username__icontains=query)|Q(email__icontains=query)).exclude(pk=request.user.id)
         print(queryset)
         
 

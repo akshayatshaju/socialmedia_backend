@@ -44,7 +44,9 @@ class RoomMessagesView(APIView):
         try:
 
             room = ChatRoom.objects.get(pk=pk)
+            # print(room,"roooom")
             messages = Message.objects.filter(room=room)
+            # print(messages,"jjjjjjjj")
             serialized_messages = self.serializer_class(messages,many=True).data
             return Response(serialized_messages,status=status.HTTP_200_OK)
         except ChatRoom.DoesNotExist:
@@ -63,11 +65,11 @@ class MessageSeenView(APIView):
         other_user = User.objects.get(pk=pk)
 
         if ChatRoom.objects.filter(members=current_user).filter(members=other_user).exists():
-            print("message found")
+            # print("message found")
             chat_room = ChatRoom.objects.filter(members=current_user).filter(members=other_user).first()
-            print(chat_room)
+            # print(chat_room)
             messages_to_update = Message.objects.filter(Q(room=chat_room))
-            print(messages_to_update,"messages")
+            # print(messages_to_update,"messages")
             messages_to_update.update(is_seen=True) 
             return Response({"Succes":"Chat Room Found"},status=status.HTTP_200_OK)
         else:

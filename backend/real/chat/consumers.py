@@ -5,11 +5,18 @@ from django.utils.timesince import timesince
 from .serializers import UserSerializer
 from .models import Message,ChatRoom
 from django.contrib.auth import get_user_model
+from channels.db import database_sync_to_async
+
+
 
 User = get_user_model()
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        
+        # print(self.scope,"chekingscopeeee")
+        print("WebSocket connection established.")
+        # print("Scope contents:", self.scope)
   
         self.room_id = self.scope['url_route']['kwargs']['room_id']
         self.room_group_name = f"chat_{self.room_id}"
@@ -19,6 +26,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
         await self.accept()
+
+        
     async def disconnect(self, close_code):
         # Leave room group
         await self.channel_layer.group_discard(
@@ -26,13 +35,26 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
 
+    @database_sync_to_async
+    def async_UserSerializer(self, user):
+        print(user,"usernotttttfounddd")
+        user_serializer = UserSerializer(user)
+        return user_serializer.data
+
     async def receive(self, text_data):
         # Receive message from WebSocket
         text_data_json = json.loads(text_data)
+        print(text_data_json,"textdaaattaa")
         message = text_data_json['message']
+        username = self.scope['user'].username
+        print(username, 'usernameee')
+        email = self.scope['user'].email
+        print(email, 'emailll')
         user = self.scope['user']
+        print(self.scope,"useeeeeerrrr")
         user_serializer = UserSerializer(user)
         email = user_serializer.data['email']
+        print(email,"hsyhdfsdhhy")
         profile_pic = user_serializer.data['profile_pic']
 
         new_message = await self.create_message(self.room_id,message,email)

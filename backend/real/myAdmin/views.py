@@ -26,17 +26,7 @@ class RegisteredUsers(APIView):
         serializer = GetUserSerializer(instance=users, many=True)
         print(serializer)
         return Response(serializer.data,status=200)
-    
-# get details of user with a  email
-# class UserDetail(APIView):
- 
-#     def get(self,request,userEmail):
-#         print(" requested for details of user")
-#         detail = Account.objects.get(email=userEmail)
-#         print(detail, "hgfhfyh")
-#         serializer = GetUserSerializer(instance=detail)
-#         print(serializer.data, "getttt")
-#         return Response(serializer.data,status=200)
+
 
 class UserDetail(APIView):
     def get(self, request, userEmail):
@@ -52,20 +42,7 @@ class UserDetail(APIView):
         except Exception as e:
             print(f"An error occurred: {str(e)}")
             return Response({"error": "Internal Server Error"}, status=500)
-    
-# delete user with id
-# class DeleteUser(APIView):
-   
-#     def patch(self, request, id):
-#         try:
-#             user = Account.objects.get(id=id)
-#             print(user, "user id gett")
-#             user.is_deleted = True
-#             user.save()
-#             return Response({"message": "success"}, status=status.HTTP_200_OK)
-#         except Account.DoesNotExist:
-#             print("user not found")
-#             return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
 
 
 
