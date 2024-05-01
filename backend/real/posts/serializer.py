@@ -96,7 +96,7 @@ class PostCreationSerializer(serializers.ModelSerializer):
         data['user'] = user
         return data
 
-    
+ #-------------------------comment serilizer--------------------------------------------------------------------------   
 
 class CommentSerializer(serializers.ModelSerializer):
    

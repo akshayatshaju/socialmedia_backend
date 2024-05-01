@@ -13,19 +13,23 @@ User = get_user_model()
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        if self.scope['user'].is_authenticated:
         
-        # print(self.scope,"chekingscopeeee")
-        print("WebSocket connection established.")
-        # print("Scope contents:", self.scope)
-  
-        self.room_id = self.scope['url_route']['kwargs']['room_id']
-        self.room_group_name = f"chat_{self.room_id}"
-        # Join room group
-        await self.channel_layer.group_add(
-            self.room_group_name,
-            self.channel_name
-        )
-        await self.accept()
+            # print(self.scope,"chekingscopeeee")
+
+            print("Scope contents:", self.scope)
+    
+            self.room_id = self.scope['url_route']['kwargs']['room_id']
+            self.room_group_name = f"chat_{self.room_id}"
+            # Join room group
+            await self.channel_layer.group_add(
+                self.room_group_name,
+                self.channel_name
+            )
+            await self.accept()
+        else:
+            print("# User is not authenticated, close the connection")
+            await self.close()
 
         
     async def disconnect(self, close_code):

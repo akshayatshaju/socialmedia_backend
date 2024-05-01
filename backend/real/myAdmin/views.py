@@ -16,6 +16,7 @@ from django.db.models import F,Q ,Count
 from user.serializers import JoiningMonthCountSerializer
 # Create your views here.
 from django.core.exceptions import ObjectDoesNotExist
+from rest_framework.permissions import IsAuthenticated
 
 
 #get all registerd user
@@ -126,17 +127,27 @@ class DeletePost(APIView):
        
        
         
+# class DeleteComment(APIView):
+#     permission_classes=[IsAdminUser]
+#     def delete(self,request,id):
+#         try:
+#             p = Comment.objects.get(id=id)
+#             p.delete()
+#             return Response({"message": "success"}, status=status.HTTP_200_OK)
+#         except Post.DoesNotExist:
+#             print("post not found")
+#             return Response({"message": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
 class DeleteComment(APIView):
-    permission_classes=[IsAdminUser]
-    def delete(self,request,id):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, id):
         try:
-            p = Comment.objects.get(id=id)
-            p.delete()
-            return Response({"message": "success"}, status=status.HTTP_200_OK)
-        except Post.DoesNotExist:
-            print("post not found")
-            return Response({"message": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
-        
+            comment = Comment.objects.get(id=id)
+            comment.delete()
+            return Response({"message": "Comment deleted successfully"}, status=status.HTTP_200_OK)
+        except Comment.DoesNotExist:
+            print("Comment not found")
+            return Response({"message": "Comment not found"}, status=status.HTTP_404_NOT_FOUND)
         
         
 class AdminUserPosts(APIView):

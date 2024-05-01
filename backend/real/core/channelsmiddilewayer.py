@@ -13,13 +13,14 @@ from jwt import decode as jwt_decode
 from django.conf import settings
 
 
+
 @database_sync_to_async
 def get_user(validated_token):
     try:
         user = get_user_model().objects.get(id=validated_token["user_id"])
         # return get_user_model().objects.get(id=toke_id)
         
-        print(user,"midilwareuser")
+        print(user,"iser from midilwareuser")
         return user
    
     except User.DoesNotExist:
@@ -33,6 +34,8 @@ class JwtAuthMiddleware(BaseMiddleware):
     async def __call__(self, scope, receive, send):
        # Close old database connections to prevent usage of timed out connections
         close_old_connections()
+        
+        print(scope,"scopefrom midilwareee")
 
         # Get the token
         token = parse_qs(scope["query_string"].decode("utf8"))["token"][0]

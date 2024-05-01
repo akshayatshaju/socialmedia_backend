@@ -103,40 +103,7 @@ class LikePost(APIView):
         
         
 
-# when user comments on a post
-class CommentPost(APIView):
-    permission_classes = [IsAuthenticated]
-    
-    def post(self,request,id):
-        try:
-            # Check if the post exists
-            print(request.data,"data")
-            post = Post.objects.get(id=id)
-            print(request.user.id,"user iddddddddd")
-            # Extract comment data from the request data
-            comment_data = {
-                'content': request.data.get('content'),
-                'post': post.id,
-            }
 
-            print(comment_data)
-
-            # Serialize the comment data
-            serializer = CommentSerializer(data=comment_data,context={'request':request})
-            if serializer.is_valid():
-                serializer.save()
-                Notification.objects.create(
-                        from_user=request.user,
-                        to_user=post.user,
-                        post=post,
-                        notification_type=Notification.NOTIFICATION_TYPES[3][0],
-                    ) 
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        except Post.DoesNotExist:
-            return Response({"message": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
 
 
 # when user comments on a post
@@ -330,23 +297,23 @@ class RecommendedPostView(APIView):
 
         # get hashtags of posts liked by user
         liked_post_hashtags = HashTag.objects.filter(hash__like__user=user)
-        print(liked_post_hashtags,"likee")
+        # print(liked_post_hashtags,"likee")
 
 
         # find post with similar hashtags
         recommended = (Post.objects.filter(hashtags__in=liked_post_hashtags).exclude(Q(user=user)|Q(like__user=user)).distinct())
-        print(recommended,"recomended")
+        # print(recommended,"recomended")
 
         remaining = Post.objects.exclude(Q(user=user)|Q(id__in=recommended.values('id')))
-        print(remaining,"remainggg")
+        # print(remaining,"remainggg")
         
         remaining_serializer = GetPostSerializer(instance=remaining,many=True,context={'request':request})
         recommended_serializer = GetPostSerializer(instance=recommended,many=True,context={'request':request})
-        print(remaining_serializer, "reserilizer")
-        print(recommended_serializer, "recomserilizer")
+        # print(remaining_serializer, "reserilizer")
+        # print(recommended_serializer, "recomserilizer")
 
         combined = recommended_serializer.data + remaining_serializer.data
-        print(combined,"combined")
+        # print(combined,"combined")
         return Response(combined,status=200)
     
 
@@ -530,7 +497,7 @@ class NotificationsView(generics.ListAPIView):
         try:
             queryset = self.get_queryset()
             serializer = self.get_serializer(queryset, many=True)
-            print(serializer.data,"all notissss")
+            # print(serializer.data,"all notissss")
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
             return Response(str(e), status=status.HTTP_500_INTERNAL_SERVER_ERROR)
