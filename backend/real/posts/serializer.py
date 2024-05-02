@@ -131,10 +131,9 @@ class ReplySerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = self.context['request'].user
-        comment_id = self.context['comment_id']  # Assuming you pass comment_id in context
 
         # Create the reply with the extracted user instance and comment id
-        reply = Reply.objects.create(user=user, comment_id=comment_id, **validated_data)
+        reply = Reply.objects.create(user=user, **validated_data)
         return reply
 
     

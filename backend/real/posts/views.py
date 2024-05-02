@@ -202,7 +202,9 @@ class ReplyToComment(APIView):
             print(reply_data)
 
             # Serialize the reply data
-            serializer = ReplySerializer(data=reply_data, context={'request': request, 'comment_id': comment_id})
+            #serializer = ReplySerializer(data=reply_data, context={'request': request, 'comment_id': comment_id})
+            serializer = ReplySerializer(data=request.data, context={'request': request, 'comment_id': comment_id})
+
             if serializer.is_valid():
                 serializer.save()
                 # Assuming you want to send notifications for replies to comments, add notification logic here

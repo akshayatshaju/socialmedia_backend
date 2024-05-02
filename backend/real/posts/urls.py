@@ -24,7 +24,7 @@ urlpatterns = [
     
     path('replytocomment/<int:comment_id>/', ReplyToComment.as_view(), name='replytocomment'),
     path('getreplies/<int:comment_id>/', GetReplies.as_view(), name='getreplies'),
-    path('deletereply/<int:reply_id>/', DeleteReply.as_view(), name='deletereply'),
+    path('deletereply/<uuid:comment_id>/', DeleteReply.as_view(), name='deletereply'),
     
     
     path('follow/<int:user_id>/', FollowUnfollowUserView.as_view(), name='follow-user'),

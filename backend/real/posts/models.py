@@ -35,7 +35,7 @@ class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     content =  models.TextField()
     commented_at = models.DateTimeField(auto_now_add=True)
-
+   
 class Reply(models.Model):
     user = models.ForeignKey(Account, on_delete=models.CASCADE)
     comment = models.ForeignKey('Comment', on_delete=models.CASCADE, related_name='replies')
